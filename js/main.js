@@ -1,5 +1,5 @@
 // main.js - Main application logic
-// Version: 15 (Fanfare + Confetti on finish, auto-canvas & styles)
+// Version: 16 (Fix options render + Result screen with fanfare & confetti)
 
 // ========== Audio Setup ==========
 const sfx = { 
@@ -9,26 +9,25 @@ const sfx = {
   fanfare: new Audio('assets/sfx/fanfare.mp3') // NEW
 };
 
-// Reduced volume by 30% (from 70% to 40%)
+// Общая громкость 40%
 Object.values(sfx).forEach(a => {
   a.preload = 'auto'; 
   a.volume = 0.4;
 });
 
-// Sound mute state
+// Состояние звука
 let soundEnabled = true;
 
-// Play sound with mute check
+// Проиграть звук (с учетом mute)
 function playSound(sound) {
-  if (soundEnabled) {
-    try {
-      sound.currentTime = 0;
-      sound.play();
-    } catch(e) {}
-  }
+  if (!soundEnabled || !sound) return;
+  try {
+    sound.currentTime = 0;
+    sound.play();
+  } catch(e) {}
 }
 
-// Toggle sound on/off
+// Переключить звук
 function toggleSound() {
   soundEnabled = !soundEnabled;
   const btn = document.getElementById('btn-sound');
@@ -36,13 +35,12 @@ function toggleSound() {
     btn.textContent = soundEnabled ? '🔊' : '🔇';
     btn.classList.toggle('muted', !soundEnabled);
   }
-  // Save preference
   try {
     localStorage.setItem('mws-sound-enabled', soundEnabled ? '1' : '0');
   } catch(e) {}
 }
 
-// Load sound preference
+// Загрузить предпочтение звука
 function loadSoundPreference() {
   try {
     const saved = localStorage.getItem('mws-sound-enabled');
@@ -57,7 +55,7 @@ function loadSoundPreference() {
   } catch(e) {}
 }
 
-// Unlock audio on first user interaction
+// Разблокировка аудио при первом взаимодействии
 const unlockAudio = () => {
   try {
     Object.values(sfx).forEach(a => {
@@ -67,11 +65,10 @@ const unlockAudio = () => {
   document.removeEventListener('pointerdown', unlockAudio);
   document.removeEventListener('click', unlockAudio);
 };
-
 document.addEventListener('pointerdown', unlockAudio, {once: true});
 document.addEventListener('click', unlockAudio, {once: true});
 
-// ========== Confetti (auto-canvas + styles) ==========
+// ========== Confetti (auto-canvas) ==========
 let confettiRAF = null;
 
 function ensureConfettiCanvas() {
@@ -80,7 +77,7 @@ function ensureConfettiCanvas() {
     cvs = document.createElement('canvas');
     cvs.id = 'confettiCanvas';
     cvs.setAttribute('aria-hidden', 'true');
-    // inline styles so we don't need CSS edits
+    // inline-стили, чтобы не лезть в CSS
     cvs.style.position = 'fixed';
     cvs.style.inset = '0';
     cvs.style.width = '100vw';
@@ -109,7 +106,7 @@ function runConfetti(duration = 3000){
   window.addEventListener('resize', onResize, { passive: true });
 
   const colors = ['#F9C74F','#90BE6D','#F94144','#577590','#F9844A','#43AA8B'];
-  const pieces = Array.from({length: 160}, () => ({
+  const pieces = Array.from({length: 180}, () => ({
     x: Math.random() * cvs.width,
     y: -Math.random() * cvs.height * 0.5,
     r: 2 + Math.random() * 4,
@@ -174,8 +171,31 @@ const state = {
   wrong: 0, 
   streak: 0, 
   current: null,
-  answered: false
+  answered: false,
+  startedAt: 0 // время старта серии (performance.now)
 };
+
+// ========== Utilities ==========
+function msToClock(ms){
+  const s = Math.max(0, Math.floor(ms / 1000));
+  const mm = String(Math.floor(s / 60)).padStart(2,'0');
+  const ss = String(s % 60).padStart(2,'0');
+  return `${mm}:${ss}`;
+}
+
+// Нормализуем опции ответов к виду {value, correct}
+function normalizeOptions(opts, right){
+  const out = [];
+  for (const o of (opts || [])) {
+    if (o && typeof o === 'object') {
+      const v = ('value' in o) ? o.value : o.val ?? o.v ?? o.text ?? o.toString();
+      out.push({ value: v, correct: o.correct ?? (v === right) });
+    } else {
+      out.push({ value: o, correct: o === right });
+    }
+  }
+  return out;
+}
 
 // ========== Statistics ==========
 function updateStats() { 
@@ -205,28 +225,23 @@ function nextTask() {
   tEl.classList.add('task-anim');
   
   // Generate answer options
-  const opts = Answers.makeOptions(task, state.mode);
-  
+  const raw = Answers.makeOptions(task, state.mode);
+  const right = task.answer;
+
   if (state.mode !== 'input') {
-    if (opts && opts.length > 0) {
+    if (raw && raw.length > 0) {
+      const opts = normalizeOptions(raw, right);
       renderOptions(opts);
     } else {
-      // Fallback: generate simple options if Answers.makeOptions failed
-      const right = task.answer;
+      // Fallback
       const need = Number(state.mode) || 2;
       const set = new Set([right]);
       const deltas = [1, -1, 2, -2, 3, -3, 5, -5];
-      
       for (const d of deltas) { 
         if (set.size >= need) break;
         set.add(right + d);
       }
-      
-      const arr = Array.from(set).slice(0, need).map(v => ({
-        value: v, 
-        correct: v === right
-      }));
-      
+      const arr = Array.from(set).slice(0, need).map(v => ({ value: v, correct: v === right }));
       renderOptions(arr);
     }
   }
@@ -237,14 +252,12 @@ function nextTask() {
   const answersWrap = document.getElementById('answers');
   
   if (isInputMode) {
-    // Show input field, hide answer buttons
     inputWrap.hidden = false;
     answersWrap.style.display = 'none';
     const input = document.getElementById("answerInput");
     input.value = '';
     setTimeout(() => input.focus(), 100);
   } else {
-    // Hide input field, show answer buttons
     inputWrap.hidden = true;
     answersWrap.style.display = 'flex';
   }
@@ -267,25 +280,173 @@ function onStart() {
   state.correct = 0;
   state.wrong = 0;
   state.streak = 0;
+  state.startedAt = performance.now();
   
   updateStats();
   switchPanel(true);
   nextTask();
 }
 
+// ========== Result Screen ==========
+function removeResultsScreen(){
+  const el = document.getElementById('results-overlay');
+  if (el) el.remove();
+}
+
+function showResultsScreen(){
+  removeResultsScreen();
+  const elapsed = performance.now() - (state.startedAt || performance.now());
+  const accuracy = state.total ? Math.round((state.correct / state.total) * 100) : 0;
+
+  // контейнер
+  const wrap = document.createElement('div');
+  wrap.id = 'results-overlay';
+  // фон (оранжевый MindWorld, полотно на всю страницу)
+  wrap.style.position = 'fixed';
+  wrap.style.inset = '0';
+  wrap.style.zIndex = '9998';
+  wrap.style.display = 'flex';
+  wrap.style.alignItems = 'flex-start';
+  wrap.style.justifyContent = 'center';
+  wrap.style.padding = '72px 16px';
+  wrap.style.background = 'linear-gradient(180deg, #EC8D00 0%, #E8654B 100%)';
+  wrap.style.overflow = 'auto';
+
+  // карточка результатов
+  const card = document.createElement('div');
+  card.style.width = 'min(940px, 95vw)';
+  card.style.background = '#FFF6EA';
+  card.style.borderRadius = '24px';
+  card.style.boxShadow = '0 10px 30px rgba(0,0,0,.15)';
+  card.style.padding = '24px 24px 20px 24px';
+
+  // заголовок
+  const h = document.createElement('h2');
+  h.textContent = I18N[state.lang]?.results_title || 'Ти на правильному шляху!';
+  h.style.margin = '0 0 16px';
+  h.style.fontSize = '28px';
+  h.style.fontWeight = '800';
+  h.style.color = '#7D733A';
+
+  // прогресс-бар (точность)
+  const barWrap = document.createElement('div');
+  barWrap.style.height = '10px';
+  barWrap.style.borderRadius = '999px';
+  barWrap.style.background = '#ffd8ae';
+  barWrap.style.overflow = 'hidden';
+  barWrap.style.margin = '0 0 16px';
+
+  const bar = document.createElement('div');
+  bar.style.height = '10px';
+  bar.style.width = `${accuracy}%`;
+  bar.style.background = '#E8654B';
+  bar.style.transition = 'width .4s ease';
+  barWrap.appendChild(bar);
+
+  // грид статистики
+  const grid = document.createElement('div');
+  grid.style.display = 'grid';
+  grid.style.gridTemplateColumns = 'repeat(4, 1fr)';
+  grid.style.gap = '12px';
+  grid.style.margin = '0 0 16px';
+
+  function makeStat(title, value){
+    const box = document.createElement('div');
+    box.style.background = '#FFFFFF';
+    box.style.borderRadius = '14px';
+    box.style.boxShadow = '0 6px 18px rgba(0,0,0,.08)';
+    box.style.padding = '14px';
+    const t = document.createElement('div');
+    t.textContent = title;
+    t.style.fontSize = '12px';
+    t.style.color = '#7D733A';
+    const v = document.createElement('div');
+    v.textContent = value;
+    v.style.fontSize = '20px';
+    v.style.fontWeight = '700';
+    v.style.color = '#2F2A1F';
+    v.style.marginTop = '4px';
+    box.appendChild(t);
+    box.appendChild(v);
+    return box;
+  }
+
+  grid.appendChild(makeStat(I18N[state.lang]?.total_label || 'Всього', String(state.total)));
+  grid.appendChild(makeStat(I18N[state.lang]?.correct_label || 'Вірно', String(state.correct)));
+  grid.appendChild(makeStat(I18N[state.lang]?.wrong_label || 'Помилки', String(state.wrong)));
+  grid.appendChild(makeStat(I18N[state.lang]?.accuracy_label || 'Точність', `${accuracy}%`));
+
+  // строка "Время"
+  const timeRow = document.createElement('div');
+  timeRow.style.margin = '0 0 8px';
+  timeRow.style.color = '#2F2A1F';
+  timeRow.style.fontSize = '14px';
+  timeRow.textContent = (I18N[state.lang]?.time_label || 'Час') + ': ' + msToClock(elapsed);
+
+  // кнопки
+  const btnRow = document.createElement('div');
+  btnRow.style.display = 'flex';
+  btnRow.style.gap = '10px';
+
+  const btnAgain = document.createElement('button');
+  btnAgain.textContent = I18N[state.lang]?.try_again || 'Спробувати ще';
+  btnAgain.style.padding = '10px 16px';
+  btnAgain.style.border = 'none';
+  btnAgain.style.borderRadius = '10px';
+  btnAgain.style.background = '#FFB14D';
+  btnAgain.style.color = '#2F2A1F';
+  btnAgain.style.fontWeight = '700';
+  btnAgain.style.cursor = 'pointer';
+  btnAgain.addEventListener('click', () => {
+    playSound(sfx.click);
+    removeResultsScreen();
+    stopConfetti();
+    // рестарт с теми же настройками
+    state.total = 0; state.correct = 0; state.wrong = 0; state.streak = 0;
+    state.startedAt = performance.now();
+    updateStats();
+    switchPanel(true);
+    nextTask();
+  });
+
+  const btnSettings = document.createElement('button');
+  btnSettings.textContent = I18N[state.lang]?.settings || 'Налаштування';
+  btnSettings.style.padding = '10px 16px';
+  btnSettings.style.border = 'none';
+  btnSettings.style.borderRadius = '10px';
+  btnSettings.style.background = '#FFFFFF';
+  btnSettings.style.boxShadow = '0 4px 14px rgba(0,0,0,.08)';
+  btnSettings.style.cursor = 'pointer';
+  btnSettings.addEventListener('click', () => {
+    playSound(sfx.click);
+    removeResultsScreen();
+    stopConfetti();
+    switchPanel(false);
+  });
+
+  btnRow.appendChild(btnAgain);
+  btnRow.appendChild(btnSettings);
+
+  // сборка
+  card.appendChild(h);
+  card.appendChild(barWrap);
+  card.appendChild(grid);
+  card.appendChild(timeRow);
+  card.appendChild(btnRow);
+  wrap.appendChild(card);
+  document.body.appendChild(wrap);
+}
+
 // ========== Check if Series Finished ==========
 function finishIfNeeded() {
   if (state.series && state.total >= state.series) {
-    // NEW: fanfare + confetti + toast, then go to settings
-    playSound(sfx.fanfare);
-    runConfetti(3500);
+    // Сначала прячем игровую панель, чтобы не мерцала
+    switchPanel(false);
+    // Тост + фанфара + конфетти + экран результатов
     showToast('✔️ ' + (I18N[state.lang].total || 'Total') + ': ' + state.total, true);
-
-    setTimeout(() => {
-      stopConfetti();
-      switchPanel(false);
-    }, 3600);
-
+    playSound(sfx.fanfare);
+    runConfetti(4500);
+    showResultsScreen();
     return true;
   }
   return false;
@@ -301,8 +462,8 @@ function handleAnswer(isCorrect, value) {
   const task = state.current;
   const answerText = `${task.a} ${task.op} ${task.b} = ${task.answer}`;
   taskEl.textContent = answerText;
-
-  // Expand board if long equation (kept behavior)
+  
+  // Expand board if long equation
   const board = document.querySelector('.board');
   if (board && answerText.length > 11) {
     board.classList.add('expanded');
@@ -337,7 +498,7 @@ function handleAnswer(isCorrect, value) {
   
   updateStats();
   
-  // Wait before showing next task
+  // Небольшая пауза и либо финиш, либо следующий пример
   setTimeout(() => {
     if (!finishIfNeeded()) {
       nextTask();
@@ -347,27 +508,27 @@ function handleAnswer(isCorrect, value) {
 
 // ========== Initialize on Page Load ==========
 window.addEventListener('DOMContentLoaded', () => {
-  // Prepare confetti canvas early (no-op if already exists)
+  // Подготовим confetti canvas
   ensureConfettiCanvas();
 
-  // Enable start button
+  // Активируем кнопку Старт
   const bs = document.getElementById('btn-start');
   if (bs) {
     bs.disabled = false;
     bs.removeAttribute('disabled');
   }
   
-  // Load saved settings
+  // Загрузка настроек
   const saved = Storage.loadSettings();
   if (saved?.lang) {
     state.lang = saved.lang;
   }
   applyI18n(state.lang);
   
-  // Load sound preference
+  // Сохранённый звук
   loadSoundPreference();
   
-  // Language switcher
+  // Переключатель языка
   document.querySelectorAll('.lang-btn').forEach(b => {
     b.addEventListener('click', () => {
       state.lang = b.dataset.lang;
@@ -378,17 +539,23 @@ window.addEventListener('DOMContentLoaded', () => {
         series: state.series, 
         lang: state.lang
       });
+      // Перерисуем заголовки на экране результатов, если открыт
+      const ro = document.getElementById('results-overlay');
+      if (ro) {
+        removeResultsScreen();
+        showResultsScreen();
+      }
     });
   });
   
-  // Restore saved settings
+  // Восстановить значения в селекторах
   if (saved) {
     document.getElementById("level").value = saved.level || 'easy';
     document.getElementById("mode").value = saved.mode || '2';
     document.getElementById("series").value = String(saved.series ?? 10);
   }
   
-  // Event listeners
+  // Слушатели
   document.getElementById("btn-start").addEventListener('click', () => {
     playSound(sfx.click);
     onStart();
@@ -405,12 +572,12 @@ window.addEventListener('DOMContentLoaded', () => {
   });
   
   document.getElementById("btn-next").addEventListener('click', () => {
-    // Always allow next task, remove the state.answered check
+    // Всегда разрешаем next (не блокируем из-за state.answered)
     playSound(sfx.click);
     nextTask();
   });
   
-  // Answer buttons click
+  // Клик по кнопкам-ответам
   document.getElementById("answers").addEventListener('click', (e) => {
     if (state.answered) return;
     const btn = e.target.closest('.answer-btn');
@@ -418,33 +585,5 @@ window.addEventListener('DOMContentLoaded', () => {
     handleAnswer(btn.dataset.correct === '1', Number(btn.textContent));
   });
   
-  // Submit input answer
-  document.getElementById("btn-submit").addEventListener('click', () => {
-    if (state.answered) return;
-    const val = Number(document.getElementById("answerInput").value);
-    if (isNaN(val)) return;
-    handleAnswer(val === state.current.answer, val);
-  });
-  
-  // Enter key in input mode
-  document.getElementById("answerInput").addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      document.getElementById('btn-submit').click();
-    }
-  });
-  
-  // Keyboard shortcuts for answer buttons (1, 2, 3)
-  document.addEventListener('keydown', (e) => {
-    if (document.getElementById("panel-game").hidden) return;
-    if (state.answered) return;
-    if (state.mode !== 'input') {
-      const n = Number(state.mode);
-      const idx = ['1', '2', '3'].indexOf(e.key);
-      if (idx >= 0 && idx < n) {
-        const btn = document.querySelectorAll('#answers .answer-btn')[idx];
-        if (btn) btn.click();
-      }
-    }
-  });
-});
+  // Отправка ответа из инпута
+  document
