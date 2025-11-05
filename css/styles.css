@@ -466,4 +466,16 @@ select:focus, .input:focus {
   .panel {
     padding: 16px;
   }
+   /* Confetti overlay */
+.confetti-canvas{
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  display: none;          /* показываем только когда запускаем анимацию */
+  pointer-events: none;   /* чтобы не перекрывал клики */
+  z-index: 9999;          /* выше всего UI */
+}
+
+
 }
