@@ -1,19 +1,16 @@
 // main.js - Main application logic
-// Version: 16 (Fix options render + Result screen with fanfare & confetti)
+// Version: 16.2 (robust start + overlay cleanup + results screen + fanfare + answers fix)
 
 // ========== Audio Setup ==========
 const sfx = { 
   click:   new Audio('assets/sfx/click.wav'), 
   success: new Audio('assets/sfx/success.wav'), 
   error:   new Audio('assets/sfx/error.wav'),
-  fanfare: new Audio('assets/sfx/fanfare.mp3') // NEW
+  fanfare: new Audio('assets/sfx/fanfare.mp3')
 };
 
 // Общая громкость 40%
-Object.values(sfx).forEach(a => {
-  a.preload = 'auto'; 
-  a.volume = 0.4;
-});
+Object.values(sfx).forEach(a => { a.preload = 'auto'; a.volume = 0.4; });
 
 // Состояние звука
 let soundEnabled = true;
@@ -21,10 +18,7 @@ let soundEnabled = true;
 // Проиграть звук (с учетом mute)
 function playSound(sound) {
   if (!soundEnabled || !sound) return;
-  try {
-    sound.currentTime = 0;
-    sound.play();
-  } catch(e) {}
+  try { sound.currentTime = 0; sound.play(); } catch(e) {}
 }
 
 // Переключить звук
@@ -35,9 +29,7 @@ function toggleSound() {
     btn.textContent = soundEnabled ? '🔊' : '🔇';
     btn.classList.toggle('muted', !soundEnabled);
   }
-  try {
-    localStorage.setItem('mws-sound-enabled', soundEnabled ? '1' : '0');
-  } catch(e) {}
+  try { localStorage.setItem('mws-sound-enabled', soundEnabled ? '1' : '0'); } catch(e) {}
 }
 
 // Загрузить предпочтение звука
@@ -47,21 +39,14 @@ function loadSoundPreference() {
     if (saved === '0') {
       soundEnabled = false;
       const btn = document.getElementById('btn-sound');
-      if (btn) {
-        btn.textContent = '🔇';
-        btn.classList.add('muted');
-      }
+      if (btn) { btn.textContent = '🔇'; btn.classList.add('muted'); }
     }
   } catch(e) {}
 }
 
 // Разблокировка аудио при первом взаимодействии
 const unlockAudio = () => {
-  try {
-    Object.values(sfx).forEach(a => {
-      a.play().then(() => a.pause()).catch(() => {});
-    });
-  } catch(e) {}
+  try { Object.values(sfx).forEach(a => { a.play().then(()=>a.pause()).catch(()=>{}); }); } catch(e) {}
   document.removeEventListener('pointerdown', unlockAudio);
   document.removeEventListener('click', unlockAudio);
 };
@@ -188,7 +173,7 @@ function normalizeOptions(opts, right){
   const out = [];
   for (const o of (opts || [])) {
     if (o && typeof o === 'object') {
-      const v = ('value' in o) ? o.value : o.val ?? o.v ?? o.text ?? o.toString();
+      const v = ('value' in o) ? o.value : (o.val ?? o.v ?? o.text ?? o.toString());
       out.push({ value: v, correct: o.correct ?? (v === right) });
     } else {
       out.push({ value: o, correct: o === right });
@@ -211,59 +196,77 @@ function switchPanel(game) {
   document.getElementById("panel-game").hidden = !game;
 }
 
+// Жёсткая зачистка возможных оверлеев/канвасов
+function hardCleanupOverlays(){
+  const ro = document.getElementById('results-overlay'); if (ro) ro.remove();
+  stopConfetti();
+  const cvs = document.getElementById('confettiCanvas'); if (cvs) cvs.style.display = 'none';
+}
+
 // ========== Generate Next Task ==========
 function nextTask() {
-  const task = Generator.generateTask(state.level);
-  state.current = task;
-  state.answered = false;
-  renderTask(task);
-  
-  // Task animation
-  const tEl = document.getElementById('task');
-  tEl.classList.remove('task-anim');
-  void tEl.offsetWidth; // Force reflow
-  tEl.classList.add('task-anim');
-  
-  // Generate answer options
-  const raw = Answers.makeOptions(task, state.mode);
-  const right = task.answer;
+  try {
+    const task = Generator.generateTask(state.level);
+    state.current = task;
+    state.answered = false;
+    renderTask(task);
+    
+    // Task animation
+    const tEl = document.getElementById('task');
+    tEl.classList.remove('task-anim');
+    void tEl.offsetWidth; // Force reflow
+    tEl.classList.add('task-anim');
+    
+    // Generate answer options
+    const raw = Answers.makeOptions(task, state.mode);
+    const right = task.answer;
 
-  if (state.mode !== 'input') {
-    if (raw && raw.length > 0) {
-      const opts = normalizeOptions(raw, right);
-      renderOptions(opts);
-    } else {
-      // Fallback
-      const need = Number(state.mode) || 2;
-      const set = new Set([right]);
-      const deltas = [1, -1, 2, -2, 3, -3, 5, -5];
-      for (const d of deltas) { 
-        if (set.size >= need) break;
-        set.add(right + d);
+    if (state.mode !== 'input') {
+      if (raw && raw.length > 0) {
+        const opts = normalizeOptions(raw, right);
+        renderOptions(opts);
+      } else {
+        // Fallback
+        const need = Number(state.mode) || 2;
+        const set = new Set([right]);
+        const deltas = [1, -1, 2, -2, 3, -3, 5, -5];
+        for (const d of deltas) { 
+          if (set.size >= need) break;
+          set.add(right + d);
+        }
+        const arr = Array.from(set).slice(0, need).map(v => ({ value: v, correct: v === right }));
+        renderOptions(arr);
       }
-      const arr = Array.from(set).slice(0, need).map(v => ({ value: v, correct: v === right }));
-      renderOptions(arr);
     }
-  }
-  
-  // Show/hide input or buttons based on mode
-  const isInputMode = state.mode === 'input';
-  const inputWrap = document.getElementById("inputWrap");
-  const answersWrap = document.getElementById('answers');
-  
-  if (isInputMode) {
-    inputWrap.hidden = false;
-    answersWrap.style.display = 'none';
-    const input = document.getElementById("answerInput");
-    input.value = '';
-    setTimeout(() => input.focus(), 100);
-  } else {
-    inputWrap.hidden = true;
-    answersWrap.style.display = 'flex';
+    
+    // Show/hide input or buttons based on mode
+    const isInputMode = state.mode === 'input';
+    const inputWrap = document.getElementById("inputWrap");
+    const answersWrap = document.getElementById('answers');
+    
+    if (isInputMode) {
+      inputWrap.hidden = false;
+      answersWrap.style.display = 'none';
+      const input = document.getElementById("answerInput");
+      input.value = '';
+      setTimeout(() => input.focus(), 100);
+    } else {
+      inputWrap.hidden = true;
+      answersWrap.style.display = 'flex';
+    }
+  } catch (err) {
+    console.error('nextTask failed:', err);
+    showToast('⚠️ Помилка завдання. Спробуйте ще раз.', false);
   }
 }
 
 // ========== Start Game ==========
+function safeSwitchToGame(){
+  hardCleanupOverlays();
+  switchPanel(true);
+  requestAnimationFrame(() => nextTask());
+}
+
 function onStart() {
   state.level = document.getElementById("level").value;
   state.mode = document.getElementById("mode").value;
@@ -283,8 +286,7 @@ function onStart() {
   state.startedAt = performance.now();
   
   updateStats();
-  switchPanel(true);
-  nextTask();
+  safeSwitchToGame();
 }
 
 // ========== Result Screen ==========
@@ -301,7 +303,6 @@ function showResultsScreen(){
   // контейнер
   const wrap = document.createElement('div');
   wrap.id = 'results-overlay';
-  // фон (оранжевый MindWorld, полотно на всю страницу)
   wrap.style.position = 'fixed';
   wrap.style.inset = '0';
   wrap.style.zIndex = '9998';
@@ -390,13 +391,15 @@ function showResultsScreen(){
 
   const btnAgain = document.createElement('button');
   btnAgain.textContent = I18N[state.lang]?.try_again || 'Спробувати ще';
-  btnAgain.style.padding = '10px 16px';
-  btnAgain.style.border = 'none';
-  btnAgain.style.borderRadius = '10px';
-  btnAgain.style.background = '#FFB14D';
-  btnAgain.style.color = '#2F2A1F';
-  btnAgain.style.fontWeight = '700';
-  btnAgain.style.cursor = 'pointer';
+  Object.assign(btnAgain.style, {
+    padding: '10px 16px',
+    border: 'none',
+    borderRadius: '10px',
+    background: '#FFB14D',
+    color: '#2F2A1F',
+    fontWeight: '700',
+    cursor: 'pointer'
+  });
   btnAgain.addEventListener('click', () => {
     playSound(sfx.click);
     removeResultsScreen();
@@ -405,18 +408,19 @@ function showResultsScreen(){
     state.total = 0; state.correct = 0; state.wrong = 0; state.streak = 0;
     state.startedAt = performance.now();
     updateStats();
-    switchPanel(true);
-    nextTask();
+    safeSwitchToGame();
   });
 
   const btnSettings = document.createElement('button');
   btnSettings.textContent = I18N[state.lang]?.settings || 'Налаштування';
-  btnSettings.style.padding = '10px 16px';
-  btnSettings.style.border = 'none';
-  btnSettings.style.borderRadius = '10px';
-  btnSettings.style.background = '#FFFFFF';
-  btnSettings.style.boxShadow = '0 4px 14px rgba(0,0,0,.08)';
-  btnSettings.style.cursor = 'pointer';
+  Object.assign(btnSettings.style, {
+    padding: '10px 16px',
+    border: 'none',
+    borderRadius: '10px',
+    background: '#FFFFFF',
+    boxShadow: '0 4px 14px rgba(0,0,0,.08)',
+    cursor: 'pointer'
+  });
   btnSettings.addEventListener('click', () => {
     playSound(sfx.click);
     removeResultsScreen();
@@ -508,8 +512,9 @@ function handleAnswer(isCorrect, value) {
 
 // ========== Initialize on Page Load ==========
 window.addEventListener('DOMContentLoaded', () => {
-  // Подготовим confetti canvas
+  // Подготовим confetti canvas и уберём возможные хвосты
   ensureConfettiCanvas();
+  hardCleanupOverlays();
 
   // Активируем кнопку Старт
   const bs = document.getElementById('btn-start');
@@ -569,6 +574,7 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById("btn-settings").addEventListener('click', () => {
     playSound(sfx.click);
     switchPanel(false);
+    hardCleanupOverlays();
   });
   
   document.getElementById("btn-next").addEventListener('click', () => {
@@ -584,6 +590,41 @@ window.addEventListener('DOMContentLoaded', () => {
     if (!btn) return;
     handleAnswer(btn.dataset.correct === '1', Number(btn.textContent));
   });
-  
+
   // Отправка ответа из инпута
-  document
+  const submitBtn = document.getElementById("btn-submit");
+  if (submitBtn) {
+    submitBtn.addEventListener('click', () => {
+      if (state.answered) return;
+      const val = Number(document.getElementById("answerInput").value);
+      if (isNaN(val)) return;
+      handleAnswer(val === state.current.answer, val);
+    });
+  }
+  
+  // Enter в инпут-режиме
+  const answerInput = document.getElementById("answerInput");
+  if (answerInput) {
+    answerInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const btn = document.getElementById('btn-submit');
+        if (btn) btn.click();
+      }
+    });
+  }
+  
+  // Горячие клавиши 1/2/3 для кнопок ответов
+  document.addEventListener('keydown', (e) => {
+    if (document.getElementById("panel-game").hidden) return;
+    if (state.answered) return;
+    if (state.mode !== 'input') {
+      const n = Number(state.mode);
+      const idx = ['1', '2', '3'].indexOf(e.key);
+      if (idx >= 0 && idx < n) {
+        const btn = document.querySelectorAll('#answers .answer-btn')[idx];
+        if (btn) btn.click();
+      }
+    }
+  });
+});
