@@ -69,7 +69,7 @@ function ensureConfettiCanvas() {
     cvs.style.height = '100vh';
     cvs.style.display = 'none';
     cvs.style.pointerEvents = 'none';
-    cvs.style.zIndex = '9999';
+    cvs.style.zIndex = '9000'; // ниже шапки
     document.body.appendChild(cvs);
   }
   return cvs;
@@ -305,7 +305,8 @@ function showResultsScreen(){
   wrap.id = 'results-overlay';
   wrap.style.position = 'fixed';
   wrap.style.inset = '0';
-  wrap.style.zIndex = '9998';
+  wrap.style.zIndex = '8500'; // ниже шапки
+  wrap.classList.add('results-padding-top');
   wrap.style.display = 'flex';
   wrap.style.alignItems = 'flex-start';
   wrap.style.justifyContent = 'center';
@@ -510,6 +511,13 @@ function handleAnswer(isCorrect, value) {
   }, 1200);
 }
 
+// ========== Helpers: active language pill ==========
+function setActiveLangButton(L){
+  document.querySelectorAll('.lang-btn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.lang === L);
+  });
+}
+
 // ========== Initialize on Page Load ==========
 window.addEventListener('DOMContentLoaded', () => {
   // Подготовим confetti canvas и уберём возможные хвосты
@@ -529,6 +537,7 @@ window.addEventListener('DOMContentLoaded', () => {
     state.lang = saved.lang;
   }
   applyI18n(state.lang);
+  setActiveLangButton(state.lang);
   
   // Сохранённый звук
   loadSoundPreference();
@@ -538,6 +547,7 @@ window.addEventListener('DOMContentLoaded', () => {
     b.addEventListener('click', () => {
       state.lang = b.dataset.lang;
       applyI18n(state.lang);
+      setActiveLangButton(state.lang);
       Storage.saveSettings({
         level: state.level, 
         mode: state.mode, 
