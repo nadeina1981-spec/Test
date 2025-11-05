@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MindWorld School — Додавання та віднімання</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar" role="banner">
+      <div class="topbar__left">
+        <img src="assets/img/logo.png" alt="MindWorld School logo" class="logo" />
+      </div>
+      <h1 class="topbar__title" data-i18n="title">Додавання та віднімання</h1>
+      <div class="topbar__right">
+        <div class="lang-capsule" aria-label="Language selector">
+          <button class="lang-btn" data-lang="uk">UA</button>
+          <button class="lang-btn" data-lang="en">EN</button>
+          <button class="lang-btn" data-lang="ru">RU</button>
+          <button class="lang-btn" data-lang="es">ES</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="content">
+      <!-- Settings Panel -->
+      <section class="panel" id="panel-settings" aria-labelledby="settings-title">
+        <h2 id="settings-title" class="visually-hidden" data-i18n="settings">Налаштування</h2>
+        <div class="settings-grid">
+          <div class="field">
+            <label for="level" data-i18n="level">Рівень</label>
+            <select id="level">
+              <option value="easy" data-i18n="level_easy">Легкий (≤10)</option>
+              <option value="medium" data-i18n="level_medium">Середній (≤100 без переходу)</option>
+              <option value="advanced" data-i18n="level_adv">Просунутий (≤100 з переходом)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="mode" data-i18n="mode">Режим відповіді</label>
+            <select id="mode">
+              <option value="2" data-i18n="mode_2">2 варіанти</option>
+              <option value="3" data-i18n="mode_3">3 варіанти</option>
+              <option value="input" data-i18n="mode_input">Ввід відповіді</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="series" data-i18n="series">Серія</label>
+            <select id="series">
+              <option value="10">10</option>
+              <option value="20">20</option>
+              <option value="30">30</option>
+              <option value="0" data-i18n="endless">Без обмежень</option>
+            </select>
+          </div>
+          <div class="actions">
+            <button id="btn-start" class="btn primary" data-i18n="start">Почати</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Game Panel -->
+      <section class="panel" id="panel-game" hidden aria-live="polite">
+        <div class="game-screen">
+          <div class="board" aria-label="Task board">
+            <div id="task" class="task">7 + 5 = ?</div>
+          </div>
+        </div>
+
+        <!-- Answer buttons (shown when mode = 2 or 3) -->
+        <div id="answers" class="answers"></div>
+
+        <!-- Input mode (shown ONLY when mode = input) -->
+        <div id="inputWrap" class="input-wrap" hidden>
+          <input 
+            id="answerInput" 
+            class="input" 
+            type="number"
+            inputmode="numeric" 
+            pattern="[0-9]*" 
+            placeholder="?"
+            aria-label="Введіть відповідь" 
+          />
+          <button id="btn-submit" class="btn" data-i18n="submit">Відповісти</button>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+          <div class="toolbar__left">
+            <button id="btn-sound" class="btn btn-sound" title="Звук" aria-label="Увімкнути/вимкнути звук">🔊</button>
+            <button id="btn-settings" class="btn ghost" data-i18n="exit">Вихід</button>
+            <button id="btn-next" class="btn" data-i18n="next">Далі</button>
+          </div>
+          <div class="stats" aria-live="polite">
+            <span data-i18n="total">Всього</span>: <b id="stat-total">0</b>
+            <span data-i18n="correct">Вірно</span>: <b id="stat-correct">0</b>
+            <span data-i18n="wrong">Помилки</span>: <b id="stat-wrong">0</b>
+            <span data-i18n="streak">Серія</span>: <b id="stat-streak">0</b>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Toast notifications -->
+    <div id="toast" class="toast" role="status" aria-live="assertive" aria-atomic="true"></div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/storage.js"></script>
+  <script src="js/generator.js"></script>
+  <script src="js/answers.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
