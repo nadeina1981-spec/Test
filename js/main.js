@@ -1,64 +1,12 @@
-// Handle user answer
-function handleAnswer(isCorrect, value) {
-  if (state.answered) return; // Prevent multiple answers
-  state.answered = true;
-  
-  // Show correct answer on the board
-  const taskEl = document.getElementById('task');
-  const task = state.current;
-  const answerText = `${task.a} ${task.op} ${task.b} = ${task.answer}`;
-  taskEl.textContent = answerText;
-  
-  // Check if answer is long and expand board
-  const board = document.querySelector('.board');
-  if (board && answerText.length > 11) {
-    board.classList.add('expanded');
-  }
-  
-  // Visual feedback on board
-  try {
-    if (board) {
-      board.classList.remove('correct', 'wrong');
-      board.classList.add(isCorrect ? 'correct' : 'wrong');
-      setTimeout(() => board.classList.remove('correct', 'wrong'), 800);
-    }
-  } catch(e) {}
-  
-  state.total++;
-  
-  if (isCorrect) {
-    state.correct++;
-    state.streak++;
-    Storage.logResult({ok: true, task: state.current, value});
-    
-    playSound(sfx.success);
-    showToast(I18N[state.lang].right_toast, true);
-  } else {
-    state.wrong++;
-    state.streak = 0;
-    Storage.logResult({ok: false, task: state.current, value});
-    
-    playSound(sfx.error);
-    showToast(I18N[state.lang].wrong_toast, false);
-  }
-  
-  updateStats();
-  
-  // Auto advance after delay - DON'T wait for button
-  setTimeout(() => {
-    if (!finishIfNeeded()) {
-      // Don't auto-advance, just enable Next button
-      // User must click Next to continue
-    }
-  }, 1200);
-}// main.js - Main application logic
-// Version: 14 (Fixed & Optimized)
+// main.js - Main application logic
+// Version: 15 (Fanfare + Confetti on finish, auto-canvas & styles)
 
 // ========== Audio Setup ==========
 const sfx = { 
-  click: new Audio('assets/sfx/click.wav'), 
+  click:   new Audio('assets/sfx/click.wav'), 
   success: new Audio('assets/sfx/success.wav'), 
-  error: new Audio('assets/sfx/error.wav')
+  error:   new Audio('assets/sfx/error.wav'),
+  fanfare: new Audio('assets/sfx/fanfare.mp3') // NEW
 };
 
 // Reduced volume by 30% (from 70% to 40%)
@@ -122,6 +70,98 @@ const unlockAudio = () => {
 
 document.addEventListener('pointerdown', unlockAudio, {once: true});
 document.addEventListener('click', unlockAudio, {once: true});
+
+// ========== Confetti (auto-canvas + styles) ==========
+let confettiRAF = null;
+
+function ensureConfettiCanvas() {
+  let cvs = document.getElementById('confettiCanvas');
+  if (!cvs) {
+    cvs = document.createElement('canvas');
+    cvs.id = 'confettiCanvas';
+    cvs.setAttribute('aria-hidden', 'true');
+    // inline styles so we don't need CSS edits
+    cvs.style.position = 'fixed';
+    cvs.style.inset = '0';
+    cvs.style.width = '100vw';
+    cvs.style.height = '100vh';
+    cvs.style.display = 'none';
+    cvs.style.pointerEvents = 'none';
+    cvs.style.zIndex = '9999';
+    document.body.appendChild(cvs);
+  }
+  return cvs;
+}
+
+function runConfetti(duration = 3000){
+  const cvs = ensureConfettiCanvas();
+  const ctx = cvs.getContext('2d');
+  const DPR = window.devicePixelRatio || 1;
+
+  function resize(){
+    cvs.style.display = 'block';
+    cvs.width  = Math.floor(window.innerWidth  * DPR);
+    cvs.height = Math.floor(window.innerHeight * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+  resize();
+  const onResize = () => resize();
+  window.addEventListener('resize', onResize, { passive: true });
+
+  const colors = ['#F9C74F','#90BE6D','#F94144','#577590','#F9844A','#43AA8B'];
+  const pieces = Array.from({length: 160}, () => ({
+    x: Math.random() * cvs.width,
+    y: -Math.random() * cvs.height * 0.5,
+    r: 2 + Math.random() * 4,
+    vx: -1 + Math.random() * 2,
+    vy:  2 + Math.random() * 3,
+    col: colors[Math.floor(Math.random() * colors.length)],
+    rot: Math.random() * Math.PI,
+    vr:  -0.1 + Math.random() * 0.2
+  }));
+
+  const t0 = performance.now();
+  cancelAnimationFrame(confettiRAF);
+
+  function tick(t){
+    const dt = (t - (tick.prev || t)) / 16.7;
+    tick.prev = t;
+
+    ctx.clearRect(0, 0, cvs.width, cvs.height);
+
+    for (const p of pieces){
+      p.x += p.vx * dt * 1.2;
+      p.y += p.vy * dt * 1.2;
+      p.rot += p.vr * dt;
+
+      if (p.y > cvs.height + 20) {
+        p.y = -20;
+        p.x = Math.random() * cvs.width;
+      }
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.col;
+      ctx.fillRect(-p.r, -p.r, p.r * 2, p.r * 2);
+      ctx.restore();
+    }
+
+    if (t - t0 < duration){
+      confettiRAF = requestAnimationFrame(tick);
+    } else {
+      stopConfetti();
+      window.removeEventListener('resize', onResize);
+    }
+  }
+  confettiRAF = requestAnimationFrame(tick);
+}
+
+function stopConfetti(){
+  cancelAnimationFrame(confettiRAF);
+  confettiRAF = null;
+  const cvs = document.getElementById('confettiCanvas');
+  if (cvs) cvs.style.display = 'none';
+}
 
 // ========== Game State ==========
 const state = { 
@@ -236,8 +276,16 @@ function onStart() {
 // ========== Check if Series Finished ==========
 function finishIfNeeded() {
   if (state.series && state.total >= state.series) {
-    switchPanel(false);
+    // NEW: fanfare + confetti + toast, then go to settings
+    playSound(sfx.fanfare);
+    runConfetti(3500);
     showToast('✔️ ' + (I18N[state.lang].total || 'Total') + ': ' + state.total, true);
+
+    setTimeout(() => {
+      stopConfetti();
+      switchPanel(false);
+    }, 3600);
+
     return true;
   }
   return false;
@@ -251,11 +299,17 @@ function handleAnswer(isCorrect, value) {
   // Show correct answer on the board
   const taskEl = document.getElementById('task');
   const task = state.current;
-  taskEl.textContent = `${task.a} ${task.op} ${task.b} = ${task.answer}`;
+  const answerText = `${task.a} ${task.op} ${task.b} = ${task.answer}`;
+  taskEl.textContent = answerText;
+
+  // Expand board if long equation (kept behavior)
+  const board = document.querySelector('.board');
+  if (board && answerText.length > 11) {
+    board.classList.add('expanded');
+  }
   
   // Visual feedback on board
   try {
-    const board = document.querySelector('.board');
     if (board) {
       board.classList.remove('correct', 'wrong');
       board.classList.add(isCorrect ? 'correct' : 'wrong');
@@ -293,6 +347,9 @@ function handleAnswer(isCorrect, value) {
 
 // ========== Initialize on Page Load ==========
 window.addEventListener('DOMContentLoaded', () => {
+  // Prepare confetti canvas early (no-op if already exists)
+  ensureConfettiCanvas();
+
   // Enable start button
   const bs = document.getElementById('btn-start');
   if (bs) {
