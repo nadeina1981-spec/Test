@@ -1,5 +1,5 @@
 // main.js - Main application logic
-// Version: 16.2 (robust start + overlay cleanup + results screen + fanfare + answers fix)
+// Version: 16.3 (centered results stats & buttons + robust overlays)
 
 // ========== Audio Setup ==========
 const sfx = { 
@@ -62,7 +62,6 @@ function ensureConfettiCanvas() {
     cvs = document.createElement('canvas');
     cvs.id = 'confettiCanvas';
     cvs.setAttribute('aria-hidden', 'true');
-    // inline-стили, чтобы не лезть в CSS
     cvs.style.position = 'fixed';
     cvs.style.inset = '0';
     cvs.style.width = '100vw';
@@ -358,16 +357,22 @@ function showResultsScreen(){
     box.style.borderRadius = '14px';
     box.style.boxShadow = '0 6px 18px rgba(0,0,0,.08)';
     box.style.padding = '14px';
+    box.style.textAlign = 'center';        // центрируем весь блок
+
     const t = document.createElement('div');
     t.textContent = title;
     t.style.fontSize = '12px';
     t.style.color = '#7D733A';
+    t.style.textAlign = 'center';          // центр заголовка
+
     const v = document.createElement('div');
     v.textContent = value;
     v.style.fontSize = '20px';
     v.style.fontWeight = '700';
     v.style.color = '#2F2A1F';
     v.style.marginTop = '4px';
+    v.style.textAlign = 'center';          // центр значения
+
     box.appendChild(t);
     box.appendChild(v);
     return box;
@@ -383,12 +388,14 @@ function showResultsScreen(){
   timeRow.style.margin = '0 0 8px';
   timeRow.style.color = '#2F2A1F';
   timeRow.style.fontSize = '14px';
+  timeRow.style.textAlign = 'center';      // центр времени
   timeRow.textContent = (I18N[state.lang]?.time_label || 'Час') + ': ' + msToClock(elapsed);
 
   // кнопки
   const btnRow = document.createElement('div');
   btnRow.style.display = 'flex';
   btnRow.style.gap = '10px';
+  btnRow.style.justifyContent = 'center';  // центр ряда кнопок
 
   const btnAgain = document.createElement('button');
   btnAgain.textContent = I18N[state.lang]?.try_again || 'Спробувати ще';
@@ -399,7 +406,8 @@ function showResultsScreen(){
     background: '#FFB14D',
     color: '#2F2A1F',
     fontWeight: '700',
-    cursor: 'pointer'
+    cursor: 'pointer',
+    textAlign: 'center'
   });
   btnAgain.addEventListener('click', () => {
     playSound(sfx.click);
@@ -420,7 +428,8 @@ function showResultsScreen(){
     borderRadius: '10px',
     background: '#FFFFFF',
     boxShadow: '0 4px 14px rgba(0,0,0,.08)',
-    cursor: 'pointer'
+    cursor: 'pointer',
+    textAlign: 'center'
   });
   btnSettings.addEventListener('click', () => {
     playSound(sfx.click);
