@@ -165,8 +165,8 @@ const END_PHRASES = {
   en: {
     perfect: ["Wow! 100% — champion!", "Flawless! Keep it up!"],
     great:   ["Awesome result!", "Great job!"],
-    good:    ["Nice work!", "You’re doing great!"],
-    try:     ["You’re on the right track!", "A bit more practice and you’ll nail it!"]
+    good:    ["Nice work!", "You're doing great!"],
+    try:     ["You're on the right track!", "A bit more practice and you'll nail it!"]
   },
   ru: {
     perfect: ["Вау! 100% — чемпион!", "Без единой ошибки! Так держать!"],
@@ -437,10 +437,17 @@ startBtn?.addEventListener("click", (e)=>{
   // Сохраняем настройки
   state.mode   = modeSel?.value ?? state.mode;
   state.series = Number(seriesSel?.value ?? state.series);
-  // Сразу запускаем игру без экрана подтверждения
+  // Запускаем игру
   startGame();
   showScreen('play');
-  window.fitPlayLayout && window.fitPlayLayout();
+  
+  // Даємо макету "доробитися", потім перераховуємо
+  requestAnimationFrame(()=>{
+    if (typeof window.fitPlayLayout === 'function') window.fitPlayLayout();
+    resizeBoardText();
+    setTimeout(resizeBoardText, 60); // Страховка
+  });
+  
   safePlay(SND.click);
 });
 
@@ -465,7 +472,14 @@ confirmBtn?.addEventListener("click", (e)=>{
   e.preventDefault();
   startGame();
   showScreen('play');
-  window.fitPlayLayout && window.fitPlayLayout(); // ← подгон сцены сразу после перехода на игру
+  
+  // Даємо макету "доробитися", потім перераховуємо
+  requestAnimationFrame(()=>{
+    if (typeof window.fitPlayLayout === 'function') window.fitPlayLayout();
+    resizeBoardText();
+    setTimeout(resizeBoardText, 60);
+  });
+  
   safePlay(SND.click);
 });
 
@@ -511,15 +525,22 @@ function setProgressBars(ok, bad, total){
   apply(finalProgress);
 }
 
-/* ==== resize: ФИКСИРОВАННЫЙ размер для всех примеров ==== */
+/* ==== resize: цифри займають ~30% висоти дошки ==== */
 function resizeBoardText(){
   if (!boardEl || !qText) return;
+
+  // Спочатку переконуємося, що дошка у фінальному розмірі
+  if (typeof window.fitPlayLayout === 'function') {
+    window.fitPlayLayout();
+  }
+
   const rect = boardEl.getBoundingClientRect();
-  
-  // ФИКСИРОВАННЫЙ размер: 30% высоты доски (зменшено з 40% на 25%)
-  const px = Math.max(20, Math.round(rect.height * 0.30));
-  
-  // Встановлюємо розмір ОДРАЗУ, щоб не було мерехтіння
+  const h = rect.height || 0;
+
+  // Цілимося в 30% висоти дошки
+  const target = Math.round(h * 0.30);
+  const px = Math.max(20, Math.min(Math.round(h * 0.40), target));
+
   qText.style.fontSize = px + 'px';
   qText.style.lineHeight = '1';
   qText.style.letterSpacing = '0';
@@ -649,9 +670,18 @@ function startGame(){
   clearBoardHighlight();
   setProgressBars(0,0,state.series);
   state.queue = buildSeriesList();
-  resizeBoardText(); // сразу подогнать размер цифр на доске
-  window.fitPlayLayout && window.fitPlayLayout(); // ← подгоняем сцену при старте игры
+  
+  // Перше підлаштування
+  if (typeof window.fitPlayLayout === 'function') window.fitPlayLayout();
+  resizeBoardText();
+  
   next();
+  
+  // І ще один пересчет після того, як все "встане"
+  requestAnimationFrame(()=>{
+    if (typeof window.fitPlayLayout === 'function') window.fitPlayLayout();
+    resizeBoardText();
+  });
 }
 
 submitBtn?.addEventListener("click", (e)=>{ e.preventDefault(); check(); safePlay(SND.click); });
@@ -697,9 +727,14 @@ function next(){
   state.n++;
   state.q = (state.queue && state.queue[state.n-1]) || genQ();
   if (qText) qText.textContent = `${state.q.a} ${state.q.op} ${state.q.b} = ?`;
+  
+  // Даємо DOM викласти текст, потім міряємо
+  requestAnimationFrame(()=>{
+    if (typeof window.fitPlayLayout === 'function') window.fitPlayLayout();
+    resizeBoardText();
+  });
+  
   if (ansInput){ ansInput.value = ''; ansInput.focus(); }
-  resizeBoardText();
-  window.fitPlayLayout && window.fitPlayLayout(); // ← при каждом новом примере
   updateScore();
 }
 
@@ -789,7 +824,14 @@ document.addEventListener('click', (e) => {
     stopConfetti();
     startGame();
     showScreen('play');
-    window.fitPlayLayout && window.fitPlayLayout(); // ← подгон при повторе
+    
+    // Даємо макету "доробитися", потім перераховуємо
+    requestAnimationFrame(()=>{
+      if (typeof window.fitPlayLayout === 'function') window.fitPlayLayout();
+      resizeBoardText();
+      setTimeout(resizeBoardText, 60);
+    });
+    
     safePlay?.(SND?.click);
   }
 
