@@ -478,9 +478,8 @@ function resizeBoardText(){
   if (!boardEl || !qText) return;
   const rect = boardEl.getBoundingClientRect();
   
-  // ФИКСИРОВАННЫЙ размер: 32% высоты доски для ВСЕХ примеров
-  // Это гарантирует что любой пример влезет в доску
-  const px = Math.max(20, Math.round(rect.height * 0.32));
+  // ФИКСИРОВАННЫЙ размер: 40% высоты доски для ВСЕХ примеров
+  const px = Math.max(24, Math.round(rect.height * 0.40));
   
   qText.style.fontSize = px + 'px';
   qText.style.lineHeight = '1';
