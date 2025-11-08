@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MindWorld School — Множення і Ділення</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+  <!-- HERO -->
+  <header class="hero">
+  <div class="hero-inner">
+    <!-- ЛОГО слева -->
+    <a class="hero-brand" href="/">
+      <img src="assets/images/logo.png" alt="MindWorld School">
+    </a>
+
+    <!-- НАЗВАНИЕ по центру -->
+    <h1 class="hero-title" id="pageTitle">Множення та ділення</h1>
+
+    <!-- ЯЗЫК справа (кнопки для широких экранов) -->
+    <div class="lang-capsule lang--on-hero">
+      <button data-lang="ua">UA</button>
+      <button data-lang="en">EN</button>
+      <button data-lang="ru">RU</button>
+      <button data-lang="es">ES</button>
+    </div>
+</header>
+
+  <main>
+    <!-- SCREEN 1: Налаштування -->
+    <section id="screen-settings" class="screen settings-screen">
+      <div class="container">
+        <div class="panel">
+          <!-- Режим -->
+          <div class="field">
+            <label for="modeSel" id="lblMode">Режим</label>
+            <select id="modeSel">
+              <option value="mul">Множення</option>
+              <option value="div">Ділення</option>
+              <option value="rnd">Змішано (× і ÷)</option>
+            </select>
+          </div>
+
+          <!-- Вибір чисел -->
+          <div class="field wide">
+            <label class="inline-check">
+              <input type="checkbox" id="digitsEnable">
+              <span id="lblDigitsToggle">Обрати числа (на які множимо/ділимо)</span>
+            </label>
+            <div id="digitsGroup" class="digits disabled" aria-disabled="true">
+              <button type="button" class="chip" data-digit="all">Усі</button>
+              <button type="button" class="chip" data-digit="1">1</button>
+              <button type="button" class="chip" data-digit="2">2</button>
+              <button type="button" class="chip" data-digit="3">3</button>
+              <button type="button" class="chip" data-digit="4">4</button>
+              <button type="button" class="chip" data-digit="5">5</button>
+              <button type="button" class="chip" data-digit="6">6</button>
+              <button type="button" class="chip" data-digit="7">7</button>
+              <button type="button" class="chip" data-digit="8">8</button>
+              <button type="button" class="chip" data-digit="9">9</button>
+              <button type="button" class="chip" data-digit="0">0</button>
+            </div>
+          </div>
+
+          <!-- Серія -->
+          <div class="field">
+            <label for="seriesSel" id="lblSeries">Серія</label>
+            <select id="seriesSel">
+              <option>5</option><option>10</option><option>15</option>
+              <option>20</option><option>25</option><option>30</option>
+            </select>
+          </div>
+
+          <div class="panel-btn">
+            <button id="startBtn" class="btn start">Почати</button>
+            <button id="battleBtn" class="btn battle">⚔️ Батл (2 гравці)</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCREEN 2: Підтвердження налаштувань -->
+    <section id="screen-confirm" class="screen confirm-screen" hidden>
+      <div class="container">
+        <div class="confirm-card">
+          <h2 id="confirmTitle">Підтвердження налаштувань</h2>
+          <ul class="confirm-list" id="confirmList"></ul>
+          <div class="confirm-actions">
+            <button id="backToSettings" class="btn ghost">Повернутись</button>
+            <button id="confirmStart" class="btn green">Підтвердити</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCREEN 3: Гра (Соло або Батл) -->
+    <section id="screen-play" class="screen play-screen" hidden>
+      <div class="container" id="playContainer">
+        
+        <!-- СОЛО РЕЖИМ -->
+        <div id="soloMode" class="play-layout-solo">
+          <div class="scene">
+            <div class="board">
+              <div class="question" id="qText">—</div>
+            </div>
+          </div>
+
+          <div class="card controls-bottom" id="gameControls">
+            <div class="answer-line">
+              <input id="ansInput" type="number" inputmode="numeric" placeholder="Відповідь">
+            </div>
+            <div class="btn-row-top">
+              <button id="submitBtn" class="btn green">Відповісти</button>
+              <button id="nextBtn" class="btn">Далі</button>
+            </div>
+            
+            <div class="score">
+              <span><span id="lblTotal">Всього:</span> <b id="total">0</b></span>
+              <span><span id="lblOk">Вірно:</span> <b id="ok">0</b></span>
+              <span><span id="lblBad">Помилки:</span> <b id="bad">0</b></span>
+              <span><span id="lblProg">Серія:</span> <b id="prog">0/0</b></span>
+            </div>
+
+            <div class="progress mini" id="miniProgress" aria-hidden="true">
+              <div class="progress__green" style="width:0%"></div>
+              <div class="progress__red" style="left:0%;width:0%"></div>
+              <div class="progress__rest" style="width:100%"></div>
+            </div>
+            
+            <div class="btn-row-bottom">
+              <button id="finishBtn" class="btn danger">Завершити</button>
+              <button id="resetBtn" class="btn">Скинути</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- БАТЛ РЕЖИМ -->
+        <div id="battleMode" class="play-layout-battle" hidden>
+          
+          <!-- ИГРОК 1 -->
+          <div class="player-zone player-1">
+            <div class="player-header">
+              <h3>👤 Гравець 1</h3>
+            </div>
+            
+            <div class="scene scene-battle">
+              <div class="board">
+                <div class="question" id="qText1">—</div>
+              </div>
+            </div>
+
+            <div class="card controls-battle">
+              <div class="answer-line">
+                <input id="ansInput1" type="number" inputmode="numeric" placeholder="Відповідь">
+              </div>
+              <button id="submitBtn1" class="btn green">Відповісти</button>
+              
+              <div class="score-mini">
+                <span>✅ <b id="ok1">0</b></span>
+                <span>❌ <b id="bad1">0</b></span>
+                <span>📊 <b id="prog1">0/10</b></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- РАЗДЕЛИТЕЛЬ VS -->
+          <div class="battle-divider">VS</div>
+
+          <!-- ИГРОК 2 -->
+          <div class="player-zone player-2">
+            <div class="player-header">
+              <h3>👤 Гравець 2</h3>
+            </div>
+            
+            <div class="scene scene-battle">
+              <div class="board">
+                <div class="question" id="qText2">—</div>
+              </div>
+            </div>
+
+            <div class="card controls-battle">
+              <div class="answer-line">
+                <input id="ansInput2" type="number" inputmode="numeric" placeholder="Відповідь">
+              </div>
+              <button id="submitBtn2" class="btn green">Відповісти</button>
+              
+              <div class="score-mini">
+                <span>✅ <b id="ok2">0</b></span>
+                <span>❌ <b id="bad2">0</b></span>
+                <span>📊 <b id="prog2">0/10</b></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- КНОПКА ЗАВЕРШИТЬ -->
+          <div class="battle-finish">
+            <button id="finishBattleBtn" class="btn danger">Завершити батл</button>
+          </div>
+          
+        </div>
+      </div>
+    </section>
+
+    <!-- SCREEN 4: Результати -->
+    <section id="screen-results" class="screen results-screen" hidden>
+      <div class="container">
+        <div class="result-card">
+          <h2 id="resTitle">Результати</h2>
+
+          <div class="progress big" id="finalProgress">
+            <div class="progress__green" style="width:0%"></div>
+            <div class="progress__red" style="left:0%;width:0%"></div>
+            <div class="progress__rest" style="width:100%"></div>
+          </div>
+
+          <ul class="result-stats">
+            <li><span id="resTotalLabel">Всього</span> <b id="resTotal">0</b></li>
+            <li><span id="resOkLabel">Вірно</span> <b id="resOk">0</b></li>
+            <li><span id="resBadLabel">Помилки</span> <b id="resBad">0</b></li>
+            <li><span id="resAccLabel">Точність</span> <b id="resAcc">0%</b></li>
+          </ul>
+
+          <div class="result-actions">
+            <button id="btnRetry" class="btn start" type="button">Спробувати ще</button>
+            <button id="btnToSettings" class="btn ghost" type="button">Налаштування</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+  <canvas id="confettiCanvas" class="confetti-canvas" aria-hidden="true"></canvas>
+</body>
+</html>
