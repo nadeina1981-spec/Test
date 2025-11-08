@@ -187,7 +187,7 @@ body{
   max-width: none;
   position: relative;
   min-height: 600px;
-  background: url('assets/images/lion-bg.png') center/cover no-repeat;
+  background: url('assets/images/lion-bg.png') bottom center/contain no-repeat;
   border-radius: 26px;
   box-shadow: var(--shadow);
   overflow: hidden;
