@@ -76,6 +76,30 @@ body{
   flex-wrap:wrap;
   justify-content:space-between;
   gap:20px;
+  position: relative;
+}
+
+/* КНОПКА BATTLE В ПРАВОМ ВЕРХНЕМ УГЛУ */
+.battle-corner-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  padding: 10px 18px;
+  border-radius: 12px;
+  border: 0;
+  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+  color: #fff;
+  font-weight: 800;
+  font-size: 15px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+  transition: all 0.3s;
+  z-index: 10;
+}
+
+.battle-corner-btn:hover {
+  box-shadow: 0 6px 16px rgba(255, 107, 53, 0.4);
+  transform: translateY(-2px);
 }
 
 .field{ flex:1 1 240px; }
@@ -98,17 +122,6 @@ body{
 
 .btn{ padding:8px 12px; border-radius:12px; border:0; background:#f1f1f1; cursor:pointer; font-weight:700; font-size:14px; }
 .btn.start{ background:#ff9a27; color:#fff; }
-.btn.battle{ 
-  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
-  color: #fff;
-  font-weight: 800;
-  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
-  transition: all 0.3s;
-}
-.btn.battle:hover{
-  box-shadow: 0 6px 16px rgba(255, 107, 53, 0.4);
-  transform: translateY(-2px);
-}
 .btn.green{ background:#2f8f46; color:#fff; }
 .btn.danger{ background:#e23d3d; color:#fff; }
 .btn.ghost{ background:#e6e7ea; color:#2b2b2b; }
@@ -247,9 +260,9 @@ body{
 }
 
 .controls-bottom {
-  flex: 0 0 240px;
-  max-width: 240px;
-  min-width: 220px;
+  flex: 0 0 280px;
+  max-width: 280px;
+  min-width: 260px;
   display: flex;
   flex-direction: column;
   gap: 14px;
