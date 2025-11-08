@@ -182,8 +182,9 @@ body{
 
 /* СЦЕНА - НА ВСЮ ВЫСОТУ */
 .scene {
-  flex: 1 1 72%;
-  min-width: 500px;
+  flex: 1 1 auto;
+  min-width: 450px;
+  max-width: none;
   position: relative;
   min-height: 600px;
   background: url('assets/images/lion-bg.png') center/cover no-repeat;
@@ -260,9 +261,9 @@ body{
 }
 
 .controls-bottom {
-  flex: 0 0 280px;
-  max-width: 280px;
-  min-width: 260px;
+  flex: 0 0 320px;
+  max-width: 320px;
+  min-width: 300px;
   display: flex;
   flex-direction: column;
   gap: 14px;
