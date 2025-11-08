@@ -189,7 +189,7 @@ body{
   min-height: 600px;
   background-image: url('assets/images/lion-bg.png');
   background-position: bottom center;
-  background-size: auto 100%;
+  background-size: contain;
   background-repeat: no-repeat;
   border-radius: 26px;
   box-shadow: var(--shadow);
@@ -199,7 +199,7 @@ body{
 /* ДОСКА */
 .board {
   position: absolute;
-  right: 5%;
+  right: 8%;
   top: 8%;
   width: min(55%, 640px);
   height: min(45%, 340px);
@@ -474,10 +474,10 @@ body{
   z-index: 5;
 }
 
-/* КНОПКА ЗАВЕРШИТЬ БАТЛ - 15PX НИЖЧЕ ЕКРАНІВ */
+/* КНОПКА ЗАВЕРШИТЬ БАТЛ - 15PX НИЖЧЕ БЛОКІВ ГРАВЦІВ */
 .battle-finish {
   position: absolute;
-  top: calc(10% + 600px + 15px); /* 10% + висота зони гравця + 15px */
+  top: calc(10% + 380px + 15px); /* 10% + приблизна висота зони (scene + controls) + 15px відступ */
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -852,5 +852,17 @@ body{
 @media (min-width: 1601px) {
   .container {
     width: 92vw;
+  }
+  
+  /* Оптимізація розміру фону для великих екранів */
+  .scene {
+    background-size: auto 85%;
+  }
+}
+
+/* ── Дуже великі екрани 2K+ (2000px+) ────────────────────── */
+@media (min-width: 2000px) {
+  .scene {
+    background-size: auto 70%;
   }
 }
