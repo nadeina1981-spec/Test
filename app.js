@@ -42,6 +42,13 @@ const I18N = {
     modeDiv: "Ділення",
     modeMix: "Змішано (× і ÷)",
     all: "Усі",
+    battle: "Battle",
+    player1: "Гравець 1",
+    player2: "Гравець 2",
+    finishBattle: "Завершити",
+    player1won: "Гравець 1 переміг!",
+    player2won: "Гравець 2 переміг!",
+    tie: "Нічия!",
   },
   en: {
     title: "Multiplication & Division",
@@ -69,6 +76,13 @@ const I18N = {
     modeDiv: "Division",
     modeMix: "Mixed (× & ÷)",
     all: "All",
+    battle: "Battle",
+    player1: "Player 1",
+    player2: "Player 2",
+    finishBattle: "Finish",
+    player1won: "Player 1 won!",
+    player2won: "Player 2 won!",
+    tie: "It's a tie!",
   },
   ru: {
     title: "Умножение и Деление",
@@ -96,6 +110,13 @@ const I18N = {
     modeDiv: "Деление",
     modeMix: "Смешано (× и ÷)",
     all: "Все",
+    battle: "Battle",
+    player1: "Игрок 1",
+    player2: "Игрок 2",
+    finishBattle: "Завершить",
+    player1won: "Игрок 1 победил!",
+    player2won: "Игрок 2 победил!",
+    tie: "Ничья!",
   },
   es: {
     title: "Multiplicación y División",
@@ -123,6 +144,13 @@ const I18N = {
     modeDiv: "División",
     modeMix: "Mixto (× y ÷)",
     all: "Todos",
+    battle: "Battle",
+    player1: "Jugador 1",
+    player2: "Jugador 2",
+    finishBattle: "Terminar",
+    player1won: "¡Jugador 1 ganó!",
+    player2won: "¡Jugador 2 ganó!",
+    tie: "¡Empate!",
   }
 };
 
@@ -214,6 +242,16 @@ function applyLang(lang){
   qs('#resAccLabel')?.replaceChildren(t.acc);
   const btnRetry = qs('#btnRetry'); if(btnRetry) btnRetry.textContent = t.retry;
   const btnToSettings = qs('#btnToSettings'); if(btnToSettings) btnToSettings.textContent = t.toSettings;
+
+  // battle mode
+  const battleBtn = qs('#battleBtn'); if(battleBtn) battleBtn.textContent = '⚔️ ' + t.battle;
+  const finishBattleBtn = qs('#finishBattleBtn'); if(finishBattleBtn) finishBattleBtn.textContent = t.finishBattle;
+  const player1Header = qs('.player-1 .player-header h3'); if(player1Header) player1Header.textContent = t.player1;
+  const player2Header = qs('.player-2 .player-header h3'); if(player2Header) player2Header.textContent = t.player2;
+  const ansInput1 = qs('#ansInput1'); ansInput1?.setAttribute('placeholder', t.answerPlaceholder);
+  const ansInput2 = qs('#ansInput2'); ansInput2?.setAttribute('placeholder', t.answerPlaceholder);
+  const submitBtn1 = qs('#submitBtn1'); if(submitBtn1) submitBtn1.textContent = t.answer;
+  const submitBtn2 = qs('#submitBtn2'); if(submitBtn2) submitBtn2.textContent = t.answer;
 
   // active lang capsule
   qsa(".lang-capsule button").forEach(b=> b.classList.toggle("active", b.dataset.lang===lang));
@@ -478,9 +516,10 @@ function resizeBoardText(){
   if (!boardEl || !qText) return;
   const rect = boardEl.getBoundingClientRect();
   
-  // ФИКСИРОВАННЫЙ размер: 40% высоты доски для ВСЕХ примеров
-  const px = Math.max(24, Math.round(rect.height * 0.40));
+  // ФИКСИРОВАННЫЙ размер: 30% высоты доски (зменшено з 40% на 25%)
+  const px = Math.max(20, Math.round(rect.height * 0.30));
   
+  // Встановлюємо розмір ОДРАЗУ, щоб не було мерехтіння
   qText.style.fontSize = px + 'px';
   qText.style.lineHeight = '1';
   qText.style.letterSpacing = '0';
@@ -960,9 +999,10 @@ function showBattleResults() {
   
   const titleEl = qs('#resTitle');
   if (titleEl) {
-    if (winner === 1) titleEl.textContent = '🏆 Гравець 1 переміг!';
-    else if (winner === 2) titleEl.textContent = '🏆 Гравець 2 переміг!';
-    else titleEl.textContent = '🤝 Нічия!';
+    const t = I18N[state.lang] || I18N.ua;
+    if (winner === 1) titleEl.textContent = '🏆 ' + t.player1won;
+    else if (winner === 2) titleEl.textContent = '🏆 ' + t.player2won;
+    else titleEl.textContent = '🤝 ' + t.tie;
   }
   
   showScreen('results');
