@@ -214,6 +214,15 @@ body{
   overflow: hidden;
 }
 
+/* ДОСКА В БАТЛ-РЕЖИМІ - МЕНША */
+.scene-battle .board {
+  width: min(70%, 480px);
+  height: min(50%, 280px);
+  right: 50%;
+  transform: translateX(50%);
+  top: 10%;
+}
+
 .board::before {
   content: "";
   position: absolute;
@@ -405,9 +414,9 @@ body{
 }
 
 .scene-battle {
-  min-height: 400px;
-  height: 50vh;
-  max-height: 500px;
+  min-height: 450px;
+  height: 55vh;
+  max-height: 550px;
   min-width: 400px;
 }
 
@@ -454,7 +463,8 @@ body{
   grid-column: 1 / -1;
   display: flex;
   justify-content: center;
-  margin-top: 20px;
+  margin-top: 0px;
+  margin-bottom: 20px;
 }
 
 /* ЭКРАН РЕЗУЛЬТАТОВ */
