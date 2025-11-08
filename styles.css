@@ -187,7 +187,10 @@ body{
   max-width: none;
   position: relative;
   min-height: 600px;
-  background: url('assets/images/lion-bg.png') bottom center/contain no-repeat;
+  background-image: url('assets/images/lion-bg.png');
+  background-position: bottom center;
+  background-size: auto 100%;
+  background-repeat: no-repeat;
   border-radius: 26px;
   box-shadow: var(--shadow);
   overflow: hidden;
@@ -545,6 +548,7 @@ body{
     max-width: 100%;
     min-width: unset;
     min-height: 500px;
+    background-size: auto 100%;
   }
   
   .controls-bottom {
@@ -613,6 +617,7 @@ body{
   
   .scene {
     min-height: 400px;
+    background-size: auto 100%;
   }
 }
 
@@ -674,6 +679,7 @@ body{
   
   .scene {
     min-height: 350px;
+    background-size: auto 100%;
   }
   
   .controls-bottom {
