@@ -259,7 +259,7 @@ body{
   z-index: 2;
   font-weight: 800;
   line-height: 1;
-  font-size: min(12vh, 10vw, 80px);
+  font-size: min(14vh, 10vw, 100px);
   max-width: 100%;
   text-align: center;
   overflow: hidden;
@@ -269,7 +269,7 @@ body{
 
 /* ТЕКСТ ВОПРОСА В БАТЛ-РЕЖИМІ - 30% ВІД ВИСОТИ ДОШКИ */
 .scene-battle .question {
-  font-size: min(12vh, 10vw, 80px);
+  font-size: min(14vh, 10vw, 100px);
 }
 
 /* БЛОК УПРАВЛЕНИЯ - УЗКИЙ */
