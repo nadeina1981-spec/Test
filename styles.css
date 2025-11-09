@@ -198,10 +198,10 @@ body{
 /* ДОСКА */
 .board {
   position: absolute;
-  right: 5%;
-  top: 5%;
+  right: 8%;
+  top: 8%;
   width: 50%;
-  height: 35%;
+  height: 40%;
   background: #fff;
   border-radius: 28px;
   border: 5px solid #8A3B00;
@@ -216,8 +216,8 @@ body{
 /* ДОСКА В БАТЛ-РЕЖИМІ - В ПРАВОМУ ВЕРХНЬОМУ КУТІ */
 .scene-battle .board {
   width: 45%;
-  height: 30%;
-  right: 12%;
+  height: 40%;
+  right: 8%;
   top: 8%;
   transform: none;
 }
@@ -259,7 +259,7 @@ body{
   z-index: 2;
   font-weight: 800;
   line-height: 1;
-  font-size: min(10vh, 8vw, 80px);
+  font-size: min(12vh, 10vw, 80px);
   max-width: 100%;
   text-align: center;
   overflow: hidden;
@@ -269,7 +269,7 @@ body{
 
 /* ТЕКСТ ВОПРОСА В БАТЛ-РЕЖИМІ - 30% ВІД ВИСОТИ ДОШКИ */
 .scene-battle .question {
-  font-size: min(9vh, 5vw, 60px);
+  font-size: min(12vh, 10vw, 80px);
 }
 
 /* БЛОК УПРАВЛЕНИЯ - УЗКИЙ */
