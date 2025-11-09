@@ -207,7 +207,7 @@ body{
   right: 8%;
   top: 8%;
   width: min(55%, 640px);
-  height: min(45%, 340px);
+  height: min(40%, 300px);
   background: #fff;
   border-radius: 28px;
   border: 5px solid #8A3B00;
@@ -219,13 +219,13 @@ body{
   overflow: hidden;
 }
 
-/* ДОСКА В БАТЛ-РЕЖИМІ - МЕНША */
+/* ДОСКА В БАТЛ-РЕЖИМІ - В ПРАВОМУ ВЕРХНЬОМУ КУТІ */
 .scene-battle .board {
-  width: min(70%, 480px);
-  height: min(50%, 280px);
-  right: 50%;
-  transform: translateX(50%);
-  top: 10%;
+  width: min(60%, 420px);
+  height: min(35%, 240px);
+  right: 8%;
+  top: 8%;
+  transform: none;
 }
 
 .board::before {
@@ -281,6 +281,8 @@ body{
   flex: 0 0 320px;
   max-width: 320px;
   min-width: 300px;
+  height: 700px;
+  max-height: 700px;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -431,10 +433,11 @@ body{
 }
 
 .scene-battle {
-  min-height: 450px;
-  height: 55vh;
-  max-height: 550px;
+  min-height: 380px;
+  height: 480px;
+  max-height: 500px;
   min-width: 400px;
+  background-size: contain;
 }
 
 .controls-battle {
@@ -459,30 +462,15 @@ body{
   font-weight: 600;
 }
 
-/* РАЗДЕЛИТЕЛЬ VS - ЦЕНТР */
+/* РАЗДЕЛИТЕЛЬ VS - СКРЫТ */
 .battle-divider {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 36px;
-  font-weight: 900;
-  color: #fff;
-  text-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
-  padding: 20px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%);
-  border-radius: 20px;
-  min-width: 80px;
-  z-index: 5;
+  display: none;
 }
 
-/* КНОПКА ЗАВЕРШИТЬ БАТЛ - 15PX НИЖЧЕ БЛОКІВ ГРАВЦІВ */
+/* КНОПКА ЗАВЕРШИТЬ БАТЛ - ПІД КОНТЕЙНЕРАМИ ГРАВЦІВ */
 .battle-finish {
   position: absolute;
-  top: calc(10% + 380px + 15px); /* 10% + приблизна висота зони (scene + controls) + 15px відступ */
+  top: calc(10% + 480px + 160px + 10px); /* 10% + висота scene-battle + висота controls + 10px */
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -614,7 +602,7 @@ body{
     position: static;
     display: grid;
     grid-template-columns: 1fr;
-    grid-template-rows: auto auto auto auto;
+    grid-template-rows: auto auto auto;
     gap: 16px;
     min-height: auto;
   }
@@ -631,32 +619,31 @@ body{
     right: auto;
   }
   
-  .battle-divider {
-    position: static;
-    transform: rotate(90deg);
-    min-height: 60px;
-    grid-row: 3;
-  }
-  
   .player-1 {
     grid-row: 1;
   }
   
   .player-2 {
-    grid-row: 4;
+    grid-row: 2;
   }
   
   .battle-finish {
     position: static;
     transform: none;
-    grid-row: 5;
+    grid-row: 3;
     margin-top: 10px;
   }
   
   .scene-battle {
-    height: 40vh;
+    height: 380px;
     min-height: 300px;
     min-width: unset;
+    background-size: contain;
+  }
+  
+  .controls-bottom {
+    height: auto;
+    max-height: none;
   }
 }
 
@@ -690,6 +677,11 @@ body{
     min-height: 400px;
     height: 500px;
     background-size: cover;
+  }
+  
+  .controls-bottom {
+    height: auto;
+    max-height: none;
   }
 }
 
@@ -757,6 +749,8 @@ body{
   
   .controls-bottom {
     min-width: 100%;
+    height: auto;
+    max-height: none;
   }
   
   .scene-battle {
