@@ -159,6 +159,7 @@ body{
   padding: 20px 0;
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   z-index: 1;
 }
 
@@ -190,9 +191,10 @@ body{
   width: 100%;
   position: relative;
   min-height: 600px;
+  height: 700px;
   background-image: url('assets/images/lion-bg.png');
   background-position: bottom center;
-  background-size: contain;
+  background-size: cover;
   background-repeat: no-repeat;
   border-radius: 26px;
   box-shadow: var(--shadow);
@@ -597,7 +599,8 @@ body{
     max-width: 100%;
     min-width: unset;
     min-height: 500px;
-    background-size: auto 100%;
+    height: 600px;
+    background-size: cover;
   }
   
   .controls-bottom {
@@ -685,7 +688,8 @@ body{
   
   .scene {
     min-height: 400px;
-    background-size: auto 100%;
+    height: 500px;
+    background-size: cover;
   }
 }
 
@@ -747,7 +751,8 @@ body{
   
   .scene {
     min-height: 350px;
-    background-size: auto 100%;
+    height: 450px;
+    background-size: cover;
   }
   
   .controls-bottom {
@@ -859,7 +864,8 @@ body{
   
   /* Оптимізація розміру фону для великих екранів */
   .scene {
-    background-size: auto 85%;
+    background-size: cover;
+    height: 700px;
   }
 }
 
@@ -877,7 +883,8 @@ body{
   
   .scene {
     max-width: 1200px;
-    background-size: contain;
+    background-size: cover;
+    height: 700px;
   }
   
   .controls-bottom {
@@ -888,8 +895,9 @@ body{
 /* ── Дуже великі екрани 2K+ (2000px+) ────────────────────── */
 @media (min-width: 2000px) {
   .scene {
-    background-size: contain;
+    background-size: cover;
     max-width: 1200px;
+    height: 700px;
   }
   
   .play-screen .container {
