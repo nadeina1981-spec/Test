@@ -269,7 +269,7 @@ body{
 
 /* ТЕКСТ ВОПРОСА В БАТЛ-РЕЖИМІ - 30% ВІД ВИСОТИ ДОШКИ */
 .scene-battle .question {
-  font-size: min(14vh, 10vw, 100px);
+  font-size: min(20vh, 14vw, 100px);
 }
 
 /* БЛОК УПРАВЛЕНИЯ - УЗКИЙ */
