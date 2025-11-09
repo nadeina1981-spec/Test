@@ -177,6 +177,8 @@ body{
   align-items: stretch;
   flex-wrap: nowrap;
   width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
   flex: 1;
 }
 
@@ -184,7 +186,8 @@ body{
 .scene {
   flex: 1 1 auto;
   min-width: 450px;
-  max-width: none;
+  max-width: 1200px;
+  width: 100%;
   position: relative;
   min-height: 600px;
   background-image: url('assets/images/lion-bg.png');
@@ -860,9 +863,36 @@ body{
   }
 }
 
+/* ── Full HD і вище (1920px+) - зберігаємо пропорції ─────── */
+@media (min-width: 1920px) {
+  .play-screen .container {
+    max-width: 1600px;
+    margin: 0 auto;
+    justify-content: center;
+  }
+  
+  .play-layout-solo {
+    max-width: 1600px;
+  }
+  
+  .scene {
+    max-width: 1200px;
+    background-size: contain;
+  }
+  
+  .controls-bottom {
+    flex: 0 0 320px;
+  }
+}
+
 /* ── Дуже великі екрани 2K+ (2000px+) ────────────────────── */
 @media (min-width: 2000px) {
   .scene {
-    background-size: auto 70%;
+    background-size: contain;
+    max-width: 1200px;
+  }
+  
+  .play-screen .container {
+    max-width: 1600px;
   }
 }
