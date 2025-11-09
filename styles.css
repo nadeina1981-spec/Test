@@ -300,8 +300,8 @@ body{
 }
 
 .answer-line input {
-  font-size: 18px;
-  padding: 10px 14px;
+  font-size: 24px;
+  padding: 14px 16px;
   border: 2px solid #ccc;
   border-radius: 12px;
   width: 100%;
